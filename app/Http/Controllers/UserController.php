@@ -10,6 +10,8 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
+    private const ADMIN_EMAIL = 'ahmadshihabuddin40@gmail.com';
+
     public function index(): View
     {
         $users = User::orderBy('role')->orderBy('name')->get();
@@ -24,20 +26,62 @@ class UserController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'confirmed', 'min:8'],
             'role' => ['required', 'in:admin,guru'],
         ]);
 
+        $role = $validated['email'] === self::ADMIN_EMAIL ? 'admin' : $validated['role'];
+
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => $request->role,
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => $role,
         ]);
 
         return redirect()->route('users.index')->with('success', 'Akun pengguna berhasil dibuat.');
+    }
+
+    public function edit(User $user): View
+    {
+        return view('users.edit', compact('user'));
+    }
+
+    public function update(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'password' => ['nullable', 'confirmed', 'min:8'],
+            'role' => ['required', 'in:admin,guru'],
+        ]);
+
+        $role = $validated['email'] === self::ADMIN_EMAIL ? 'admin' : $validated['role'];
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->role = $role;
+
+        if (! empty($validated['password'])) {
+            $user->password = Hash::make($validated['password']);
+        }
+
+        $user->save();
+
+        return redirect()->route('users.index')->with('success', 'Akun pengguna berhasil diperbarui.');
+    }
+
+    public function destroy(Request $request, User $user): RedirectResponse
+    {
+        if ($request->user()->id === $user->id) {
+            return back()->withErrors(['user' => 'Anda tidak dapat menghapus akun sendiri.']);
+        }
+
+        $user->delete();
+
+        return redirect()->route('users.index')->with('success', 'Akun pengguna berhasil dihapus.');
     }
 }

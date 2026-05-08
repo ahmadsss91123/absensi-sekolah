@@ -17,6 +17,17 @@
                 </div>
             @endif
 
+            @if($errors->any())
+                <div class="mb-6 rounded-3xl bg-rose-50 p-4 text-sm text-rose-700 dark:bg-rose-950 dark:text-rose-200">
+                    <p class="font-semibold">Terjadi kesalahan:</p>
+                    <ul class="mt-2 list-disc space-y-1 pl-5">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-950">
                 <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
                     <thead class="bg-slate-50 dark:bg-slate-900">
@@ -24,7 +35,8 @@
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Nama</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Email</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Role</th>
-                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Dibuat</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Dibuat</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-200 bg-white dark:divide-slate-700 dark:bg-slate-950">
@@ -35,11 +47,21 @@
                                 <td class="px-6 py-4 text-sm">
                                     <span class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-100">{{ ucfirst($user->role) }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-right text-sm text-slate-500 dark:text-slate-400">{{ $user->created_at->format('d M Y') }}</td>
+                                <td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400">{{ $user->created_at->format('d M Y') }}</td>
+                                <td class="px-6 py-4 text-right text-sm font-medium space-x-2">
+                                    <a href="{{ route('users.edit', $user) }}" class="inline-flex items-center rounded-full px-3 py-1 text-sky-600 hover:bg-sky-50 dark:text-sky-300 dark:hover:bg-slate-800">Edit</a>
+                                    @if(auth()->id() !== $user->id)
+                                        <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline-block" onsubmit="return confirm('Hapus akun ini?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center rounded-full px-3 py-1 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-slate-800">Hapus</button>
+                                        </form>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="4" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Tidak ada pengguna terdaftar.</td>
+                                <td colspan="5" class="px-6 py-10 text-center text-sm text-slate-500 dark:text-slate-400">Tidak ada pengguna terdaftar.</td>
                             </tr>
                         @endforelse
                     </tbody>
