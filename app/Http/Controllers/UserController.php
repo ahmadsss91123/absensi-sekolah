@@ -10,8 +10,6 @@ use Illuminate\View\View;
 
 class UserController extends Controller
 {
-    private const ADMIN_EMAIL = 'ahmadshihabuddin40@gmail.com';
-
     public function index(): View
     {
         $users = User::orderBy('role')->orderBy('name')->get();
@@ -33,13 +31,11 @@ class UserController extends Controller
             'role' => ['required', 'in:admin,guru'],
         ]);
 
-        $role = $validated['email'] === self::ADMIN_EMAIL ? 'admin' : $validated['role'];
-
         User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => $role,
+            'role' => $validated['role'],
         ]);
 
         return redirect()->route('users.index')->with('success', 'Akun pengguna berhasil dibuat.');
@@ -59,11 +55,9 @@ class UserController extends Controller
             'role' => ['required', 'in:admin,guru'],
         ]);
 
-        $role = $validated['email'] === self::ADMIN_EMAIL ? 'admin' : $validated['role'];
-
         $user->name = $validated['name'];
         $user->email = $validated['email'];
-        $user->role = $role;
+        $user->role = $validated['role'];
 
         if (! empty($validated['password'])) {
             $user->password = Hash::make($validated['password']);

@@ -60,7 +60,7 @@
 
                         <div class="rounded-3xl bg-slate-50 p-4 text-sm text-slate-600 dark:bg-slate-900 dark:text-slate-300">
                             <p class="font-semibold">Catatan</p>
-                            <p class="mt-2">Email <strong>ahmadshihabuddin40@gmail.com</strong> akan otomatis disimpan sebagai admin.</p>
+                            <p class="mt-2">Role admin ditentukan oleh field <code>role</code> pada pengguna, tanpa pengecekan email.</p>
                         </div>
 
                         <div class="flex flex-col gap-3 sm:flex-row sm:justify-between">

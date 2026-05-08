@@ -11,10 +11,30 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    return match (auth()->user()->role) {
+        'admin' => redirect()->route('dashboard.admin'),
+        'guru' => redirect()->route('dashboard.guru'),
+        default => abort(403, 'Akses dashboard tidak tersedia untuk role ini.'),
+    };
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard/admin', function () {
+        return view('dashboard');
+    })->middleware('admin')->name('dashboard.admin');
+
+    Route::get('/dashboard/guru', function () {
+        if (auth()->user()->role !== 'guru') {
+            abort(403, 'Akses ditolak. Hanya guru yang dapat mengakses halaman ini.');
+        }
+
+        return view('dashboard');
+    })->name('dashboard.guru');
+
+    Route::resource('users', UserController::class)
+        ->except(['show'])
+        ->middleware('admin');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -25,14 +45,6 @@ Route::middleware('auth')->group(function () {
     Route::post('attendances/bulk', [AttendanceController::class, 'bulkStore'])->name('attendances.bulk.store');
     Route::resource('attendances', AttendanceController::class);
 
-    Route::middleware('admin')->group(function () {
-        Route::get('users', [UserController::class, 'index'])->name('users.index');
-        Route::get('users/create', [UserController::class, 'create'])->name('users.create');
-        Route::post('users', [UserController::class, 'store'])->name('users.store');
-        Route::get('users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::put('users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    });
 });
 
 require __DIR__.'/auth.php';
